@@ -1,0 +1,49 @@
+from datetime import date
+from bs4 import BeautifulSoup
+import requests
+import re
+import csv
+import time
+import pandas as pd
+
+teamsList=[]
+
+def teamYearUrlList(link):
+    url = link
+    html_content = requests.get(url).text
+    soup = BeautifulSoup(html_content, 'lxml')
+    pattern = re.compile(r'season\"\sscope\=\"row\">\s*<a\shref=\"\/teams\/[A-Z]{3}\/(\d{4}\.html)\"')
+    matches = pattern.finditer(soup.prettify())
+    for match in matches:
+        yearForTeam = url + match[1]
+        print(yearForTeam)
+
+def teamIndexPage(page):
+    url = page
+    html_content = requests.get(url).text
+    soup = BeautifulSoup(html_content, 'lxml')
+    pattern = re.compile(r'<a\shref=\"(\/teams\/[A-Z]{3}\/)\"')
+    matches = pattern.finditer(soup.prettify())
+    for match in matches:
+        address = 'https://www.basketball-reference.com' + (match[1])
+        teamsList.append(address)
+
+# teamIndexPage('https://www.basketball-reference.com/teams/')
+
+# teamYearUrlList('https://www.basketball-reference.com/teams/ATL/')
+
+def getRoster(page):
+    url = page
+    team = (url.split('/')[-2])
+    year = (url.split('/')[-1][:4])
+    html_content = requests.get(url).text
+    soup = BeautifulSoup(html_content, 'lxml')
+    roster = soup.find('table', id='roster')
+    print(roster.text)
+    # nameForFile = team + '-' + year + '-roster'
+    # with open(nameForFile + '.csv', 'w', newline='') as csvRoster:
+    #     writer = csv.writer(csvRoster)
+    #     writer.writerows(roster.text)
+    # csvRoster.close()
+
+getRoster('https://www.basketball-reference.com/teams/ATL/2022.html')
